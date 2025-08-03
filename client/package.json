@@ -1,0 +1,17 @@
+{
+  "name": "soccer-stars-client",
+  "version": "1.0.0",
+  "description": "Phaser 3 client for Soccer Stars multiplayer game",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server . -p 3000 -c-1",
+    "build": "echo 'Client build complete - ready for Netlify deployment'"
+  },
+  "dependencies": {
+    "colyseus.js": "^0.15.0",
+    "phaser": "^3.70.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
