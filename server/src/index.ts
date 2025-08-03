@@ -21,7 +21,14 @@ const gameServer = new Server({
 });
 
 // Register room handlers
-gameServer.define('soccer', SoccerRoom);
+gameServer.define('soccer', SoccerRoom)
+  .filterBy(['roomCode']); // Allow filtering by room code
+
+// Room creation endpoint
+app.post('/create-room', (req, res) => {
+  const roomCode = generateRoomCode();
+  res.json({ roomCode });
+});
 
 // Basic health check endpoint
 app.get('/', (req, res) => {
@@ -31,6 +38,15 @@ app.get('/', (req, res) => {
     uptime: process.uptime()
   });
 });
+
+function generateRoomCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 gameServer.listen(port);
 console.log(`🎮 Soccer Stars server listening on ws://localhost:${port}`);
