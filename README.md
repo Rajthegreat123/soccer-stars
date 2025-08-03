@@ -4,7 +4,8 @@ A full-stack, browser-based multiplayer turn-based game inspired by Soccer Stars
 
 ## 🎮 Game Features
 
-- **Multiplayer**: 2 players per room
+- **Lobby System**: Create/join rooms with 5-letter codes
+- **Multiplayer**: 2 players per room with private room codes
 - **Turn-based gameplay**: Each player takes turns moving their discs
 - **Physics**: Realistic ball and disc physics with collision detection
 - **Goal scoring**: First to 5 goals wins
@@ -70,12 +71,17 @@ project-root/
    ```
    Client will run on `http://localhost:3000`
 
-4. **Open multiple browser tabs/windows to test multiplayer**
+4. **Test multiplayer**:
+   - Open the game in one browser → Create Room → Note the 5-letter code
+   - Open the game in another browser → Join Room → Enter the code
+   - Both players should connect and start playing!
 
 ## 🎯 How to Play
 
-1. **Join a room**: Open the game URL
-2. **Wait for opponent**: Game starts when 2 players join
+1. **Create or Join a room**: 
+   - **Create Room**: Generate a 5-letter code to share with a friend
+   - **Join Room**: Enter a friend's 5-letter room code
+2. **Wait for opponent**: Game starts when both players join
 3. **Take turns**: 
    - Drag any of your discs to aim
    - Release to shoot (longer drag = more power)

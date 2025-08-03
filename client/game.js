@@ -14,6 +14,8 @@ class SoccerStarsGame extends Phaser.Scene {
         this.room = null;
         this.playerTeam = null;
         this.playerId = null;
+        this.roomCode = null;
+        this.isCreator = false;
         
         // Input
         this.isDragging = false;
@@ -45,11 +47,11 @@ class SoccerStarsGame extends Phaser.Scene {
         // Setup input
         this.setupInput();
         
-        // Connect to Colyseus server
-        this.connectToServer();
-        
         // Create UI elements
         this.createUI();
+        
+        // Show lobby instead of auto-connecting
+        this.showLobby();
     }
     
     createCircleTexture(key, radius, color) {
@@ -126,14 +128,7 @@ class SoccerStarsGame extends Phaser.Scene {
             console.log('Connecting to:', serverUrl);
             this.client = new Colyseus.Client(serverUrl);
             
-            // Join or create a room
-            this.room = await this.client.joinOrCreate('soccer');
-            this.playerId = this.room.sessionId;
-            
-            console.log('Connected to room:', this.room.id);
-            document.getElementById('loading').style.display = 'none';
-            
-            this.setupRoomListeners();
+            console.log('Connected to server');
             
         } catch (error) {
             console.error('Failed to connect to server:', error);
@@ -441,6 +436,77 @@ class SoccerStarsGame extends Phaser.Scene {
             </div>
         `;
     }
+    
+    showLobby() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('lobby').style.display = 'flex';
+    }
+    
+    hideLobby() {
+        document.getElementById('lobby').style.display = 'none';
+    }
+    
+    async createRoomWithCode(roomCode) {
+        try {
+            this.roomCode = roomCode;
+            this.isCreator = true;
+            
+            // Connect to server first
+            await this.connectToServer();
+            
+            // Create room with specific code
+            this.room = await this.client.create('soccer', { 
+                roomCode: roomCode,
+                creatorId: this.client.id 
+            });
+            this.playerId = this.room.sessionId;
+            
+            console.log('Created room with code:', roomCode);
+            this.setupRoomListeners();
+            this.hideLobby();
+            
+            // Show waiting room
+            this.showWaitingRoom(roomCode);
+            
+        } catch (error) {
+            console.error('Failed to create room:', error);
+            this.showLobbyError('Failed to create room. Please try again.');
+        }
+    }
+    
+    async joinRoomWithCode(roomCode) {
+        try {
+            this.roomCode = roomCode;
+            this.isCreator = false;
+            
+            // Connect to server first
+            await this.connectToServer();
+            
+            // Join room with specific code
+            this.room = await this.client.joinOrCreate('soccer', { roomCode: roomCode });
+            this.playerId = this.room.sessionId;
+            
+            console.log('Joined room with code:', roomCode);
+            this.setupRoomListeners();
+            this.hideLobby();
+            
+        } catch (error) {
+            console.error('Failed to join room:', error);
+            this.showLobbyError('Room not found or full. Please check the code.');
+        }
+    }
+    
+    showWaitingRoom(roomCode) {
+        document.getElementById('currentRoomCode').textContent = roomCode;
+        document.getElementById('lobbyOptions').style.display = 'none';
+        document.getElementById('createRoom').style.display = 'none';
+        document.getElementById('joinRoom').style.display = 'none';
+        document.getElementById('waitingRoom').style.display = 'block';
+    }
+    
+    showLobbyError(message) {
+        alert(message); // Simple error display for now
+    }
 }
 
 // Game configuration
@@ -484,6 +550,77 @@ function exitGame() {
 
 function hideStatus() {
     document.getElementById('gameStatus').style.display = 'none';
+}
+
+// Lobby functions
+function showCreateRoom() {
+    document.getElementById('lobbyOptions').style.display = 'none';
+    document.getElementById('createRoom').style.display = 'block';
+    
+    // Generate room code
+    generateRoomCode();
+}
+
+function showJoinRoom() {
+    document.getElementById('lobbyOptions').style.display = 'none';
+    document.getElementById('joinRoom').style.display = 'block';
+    
+    // Focus on input
+    setTimeout(() => {
+        document.getElementById('roomCodeInput').focus();
+    }, 100);
+}
+
+function showLobbyOptions() {
+    document.getElementById('lobbyOptions').style.display = 'block';
+    document.getElementById('createRoom').style.display = 'none';
+    document.getElementById('joinRoom').style.display = 'none';
+    document.getElementById('waitingRoom').style.display = 'none';
+}
+
+async function generateRoomCode() {
+    try {
+        const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:2567'
+            : 'https://your-render-app.onrender.com'; // Replace with your deployed server URL
+            
+        const response = await fetch(`${serverUrl}/create-room`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        document.getElementById('roomCodeDisplay').textContent = data.roomCode;
+        
+    } catch (error) {
+        console.error('Failed to generate room code:', error);
+        document.getElementById('roomCodeDisplay').textContent = 'ERROR';
+    }
+}
+
+function createRoom() {
+    const roomCode = document.getElementById('roomCodeDisplay').textContent;
+    if (roomCode && roomCode !== 'XXXXX' && roomCode !== 'ERROR') {
+        game.scene.scenes[0].createRoomWithCode(roomCode);
+    }
+}
+
+function joinRoom() {
+    const roomCode = document.getElementById('roomCodeInput').value.toUpperCase().trim();
+    if (roomCode.length === 5) {
+        game.scene.scenes[0].joinRoomWithCode(roomCode);
+    } else {
+        alert('Please enter a valid 5-letter room code');
+    }
+}
+
+function leaveLobby() {
+    if (game.scene.scenes[0].room) {
+        game.scene.scenes[0].room.leave();
+    }
+    location.reload();
 }
 
 // Start the game
