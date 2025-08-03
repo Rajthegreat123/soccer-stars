@@ -3,9 +3,17 @@ import { GameState, Player, Disc, Ball } from "../schema/GameState";
 
 export class SoccerRoom extends Room<GameState> {
   maxClients = 2;
+  roomCode: string = "";
+  creatorId: string = "";
   
   onCreate(options: any) {
     this.setState(new GameState());
+    
+    // Set room code and creator
+    this.roomCode = options.roomCode || this.generateRoomCode();
+    this.creatorId = options.creatorId || "";
+    
+    console.log(`Room created with code: ${this.roomCode}`);
     
     this.onMessage("move", (client, message) => {
       this.handleMove(client, message);
@@ -357,5 +365,14 @@ export class SoccerRoom extends Room<GameState> {
     });
     
     this.resetBall();
+  }
+  
+  private generateRoomCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 }

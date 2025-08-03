@@ -29,8 +29,9 @@
 
 ### 3. Test
 
-- Open your Netlify URL in 2 browser tabs
-- Both players should connect and be able to play!
+- Open your Netlify URL in one browser → Create Room → Note the code
+- Open the same URL in another browser → Join Room → Enter the code  
+- Both players should connect and start playing!
 
 ### 🔧 Local Development
 

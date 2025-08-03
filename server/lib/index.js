@@ -21,7 +21,13 @@ const gameServer = new colyseus_1.Server({
     server,
 });
 // Register room handlers
-gameServer.define('soccer', SoccerRoom_1.SoccerRoom);
+gameServer.define('soccer', SoccerRoom_1.SoccerRoom)
+    .filterBy(['roomCode']); // Allow filtering by room code
+// Room creation endpoint
+app.post('/create-room', (req, res) => {
+    const roomCode = generateRoomCode();
+    res.json({ roomCode });
+});
 // Basic health check endpoint
 app.get('/', (req, res) => {
     res.json({
@@ -30,5 +36,13 @@ app.get('/', (req, res) => {
         uptime: process.uptime()
     });
 });
+function generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 gameServer.listen(port);
 console.log(`🎮 Soccer Stars server listening on ws://localhost:${port}`);

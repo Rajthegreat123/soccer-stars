@@ -7,9 +7,15 @@ class SoccerRoom extends colyseus_1.Room {
     constructor() {
         super(...arguments);
         this.maxClients = 2;
+        this.roomCode = "";
+        this.creatorId = "";
     }
     onCreate(options) {
         this.setState(new GameState_1.GameState());
+        // Set room code and creator
+        this.roomCode = options.roomCode || this.generateRoomCode();
+        this.creatorId = options.creatorId || "";
+        console.log(`Room created with code: ${this.roomCode}`);
         this.onMessage("move", (client, message) => {
             this.handleMove(client, message);
         });
@@ -337,6 +343,14 @@ class SoccerRoom extends colyseus_1.Room {
             disc.canMove = disc.team === this.state.currentTurn;
         });
         this.resetBall();
+    }
+    generateRoomCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < 5; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
 }
 exports.SoccerRoom = SoccerRoom;
