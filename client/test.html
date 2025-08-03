@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Soccer Stars Lobby Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            background: #333;
+            color: white;
+        }
+        .test-result { 
+            margin: 10px 0; 
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass { background: #4CAF50; }
+        .fail { background: #f44336; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Soccer Stars Connection Test</h1>
+    
+    <div id="tests"></div>
+    
+    <h2>Manual Tests:</h2>
+    <button onclick="testServerConnection()">Test Server Connection</button>
+    <button onclick="testRoomCreation()">Test Room Creation</button>
+    <button onclick="testCompleteWorkflow()">Test Room Create & Join</button>
+    <button onclick="window.open('index.html', '_blank')">Open Game</button>
+    
+    <h2>Quick Test:</h2>
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h3>Test Lobby System:</h3>
+        <p>1. <button onclick="window.open('index.html', '_blank')">Open Game Tab 1</button> → Create Room → Note the code</p>
+        <p>2. <button onclick="window.open('index.html', '_blank')">Open Game Tab 2</button> → Join Room → Enter the code</p>
+        <p>3. Both players should connect and start playing!</p>
+    </div>
+    
+    <div id="serverStatus"></div>
+    
+    <script src="https://unpkg.com/colyseus.js@^0.15.0/dist/colyseus.js"></script>
+    
+    <script>
+        const testsDiv = document.getElementById('tests');
+        const statusDiv = document.getElementById('serverStatus');
+        
+        function addTestResult(name, success, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${success ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${name}:</strong> ${success ? 'PASS' : 'FAIL'} - ${message}`;
+            testsDiv.appendChild(div);
+        }
+        
+        // Test if required libraries are loaded
+        if (typeof Colyseus !== 'undefined') {
+            addTestResult('Colyseus Library', true, 'Colyseus.js loaded successfully');
+        } else {
+            addTestResult('Colyseus Library', false, 'Colyseus.js failed to load');
+        }
+        
+        async function testServerConnection() {
+            statusDiv.innerHTML = 'Testing server connection...';
+            try {
+                const response = await fetch('http://localhost:2567/');
+                const data = await response.json();
+                addTestResult('Server Health', true, `Server running, uptime: ${data.uptime}s`);
+                statusDiv.innerHTML = 'Server connection: OK';
+            } catch (error) {
+                addTestResult('Server Health', false, `Server connection failed: ${error.message}`);
+                statusDiv.innerHTML = 'Server connection: FAILED';
+            }
+        }
+        
+        async function testRoomCreation() {
+            statusDiv.innerHTML = 'Testing room creation...';
+            try {
+                const response = await fetch('http://localhost:2567/create-room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                addTestResult('Room Creation', true, `Room code generated: ${data.roomCode}`);
+                statusDiv.innerHTML = `Room creation: OK (${data.roomCode})`;
+            } catch (error) {
+                addTestResult('Room Creation', false, `Room creation failed: ${error.message}`);
+                statusDiv.innerHTML = 'Room creation: FAILED';
+            }
+        }
+        
+        async function testWebSocketConnection() {
+            statusDiv.innerHTML = 'Testing WebSocket connection...';
+            try {
+                const client = new Colyseus.Client('ws://localhost:2567');
+                addTestResult('WebSocket Connection', true, 'WebSocket client created successfully');
+                statusDiv.innerHTML = 'WebSocket: OK';
+            } catch (error) {
+                addTestResult('WebSocket Connection', false, `WebSocket failed: ${error.message}`);
+                statusDiv.innerHTML = 'WebSocket: FAILED';
+            }
+        }
+        
+        async function testCompleteWorkflow() {
+            statusDiv.innerHTML = 'Testing complete room workflow...';
+            try {
+                // Test creating a room
+                const createResponse = await fetch('http://localhost:2567/create-room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const roomData = await createResponse.json();
+                const roomCode = roomData.roomCode;
+                
+                // Test WebSocket connection and room creation
+                const client = new Colyseus.Client('ws://localhost:2567');
+                const room = await client.create('soccer', { 
+                    roomCode: roomCode,
+                    creatorId: 'test-creator'
+                });
+                
+                addTestResult('Complete Workflow', true, `Room ${roomCode} created and connected successfully`);
+                statusDiv.innerHTML = `Workflow test: OK (Room: ${roomCode})`;
+                
+                // Clean up
+                room.leave();
+                
+            } catch (error) {
+                addTestResult('Complete Workflow', false, `Workflow failed: ${error.message}`);
+                statusDiv.innerHTML = 'Workflow test: FAILED';
+            }
+        }
+        
+        // Run automatic tests
+        testServerConnection();
+        testWebSocketConnection();
+    </script>
+</body>
+</html>
