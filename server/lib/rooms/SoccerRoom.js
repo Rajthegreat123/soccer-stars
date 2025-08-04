@@ -16,8 +16,6 @@ class SoccerRoom extends colyseus_1.Room {
         this.roomCode = options.roomCode || this.generateRoomCode();
         this.creatorId = options.creatorId || "";
         console.log(`Room created with code: ${this.roomCode}`);
-        // Update metadata with room code
-        this.setMetadata({ roomCode: this.roomCode });
         this.onMessage("move", (client, message) => {
             this.handleMove(client, message);
         });
@@ -27,6 +25,20 @@ class SoccerRoom extends colyseus_1.Room {
         this.onMessage("restart", (client) => {
             if (this.state.gamePhase === 2) { // game ended
                 this.resetGame();
+            }
+        });
+        this.onMessage("setRoomCode", (client, message) => {
+            try {
+                if (this.roomCode === "") { // Only allow setting room code if not already set
+                    this.roomCode = message.roomCode;
+                    this.setMetadata({ roomCode: this.roomCode });
+                    console.log(`Room code set to: ${this.roomCode}`);
+                    // Send confirmation to client
+                    client.send('roomCodeSet', { roomCode: this.roomCode });
+                }
+            }
+            catch (error) {
+                console.error('Error setting room code:', error);
             }
         });
         // Setup update loop for physics

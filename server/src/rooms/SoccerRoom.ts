@@ -17,9 +17,6 @@ export class SoccerRoom extends Room<GameState> {
     
     console.log(`Room created with code: ${this.roomCode}`);
     
-    // Update metadata with room code
-    this.setMetadata({ roomCode: this.roomCode });
-    
     this.onMessage("move", (client, message) => {
       this.handleMove(client, message);
     });
@@ -34,7 +31,20 @@ export class SoccerRoom extends Room<GameState> {
       }
     });
     
-
+    this.onMessage("setRoomCode", (client, message) => {
+      try {
+        if (this.roomCode === "") { // Only allow setting room code if not already set
+          this.roomCode = message.roomCode;
+          this.setMetadata({ roomCode: this.roomCode });
+          console.log(`Room code set to: ${this.roomCode}`);
+          
+          // Send confirmation to client
+          client.send('roomCodeSet', { roomCode: this.roomCode });
+        }
+      } catch (error) {
+        console.error('Error setting room code:', error);
+      }
+    });
     
     // Setup update loop for physics
     this.setSimulationInterval((deltaTime) => this.update(deltaTime), 1000 / 60);
