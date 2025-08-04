@@ -20,8 +20,12 @@ const server = (0, http_1.createServer)(app);
 const gameServer = new colyseus_1.Server({
     server,
 });
-// Register room handlers
-gameServer.define('soccer', SoccerRoom_1.SoccerRoom);
+// Register room handlers with metadata support
+gameServer.define('soccer', SoccerRoom_1.SoccerRoom, {
+    metadata: {
+        roomCode: ''
+    }
+});
 // Room creation endpoint
 app.post('/create-room', (req, res) => {
     const roomCode = generateRoomCode();
