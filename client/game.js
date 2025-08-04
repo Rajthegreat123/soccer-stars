@@ -190,6 +190,11 @@ class SoccerStarsGame extends Phaser.Scene {
             console.log('Left room with code:', code);
         });
         
+        // Listen for room code confirmation
+        this.room.onMessage('roomCodeSet', (message) => {
+            console.log('Room code confirmed:', message.roomCode);
+        });
+        
 
     }
     
@@ -474,14 +479,20 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Create a new room with the room code
-            console.log('Attempting to create room with code:', roomCode);
-            this.room = await this.client.create('soccer', { roomCode: roomCode });
+            // Create a new room without specifying room code first
+            console.log('Attempting to create room...');
+            this.room = await this.client.create('soccer');
             console.log('Room created successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             
-            console.log('Created room with code:', roomCode);
+            console.log('Created room successfully');
             this.setupRoomListeners();
+            
+            // Send room code to server after room is created
+            console.log('Sending room code to server:', roomCode);
+            this.room.send('setRoomCode', { roomCode: roomCode });
+            
+            console.log('Created room with code:', roomCode);
             this.hideLobby();
             
             // Show waiting room
