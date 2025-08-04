@@ -136,20 +136,7 @@ class SoccerStarsGame extends Phaser.Scene {
             console.log('Connecting to:', serverUrl);
             this.client = new Colyseus.Client(serverUrl);
             
-            // Add connection event listeners
-            this.client.onOpen(() => {
-                console.log('WebSocket connection opened');
-            });
-            
-            this.client.onError((error) => {
-                console.error('WebSocket connection error:', error);
-            });
-            
-            this.client.onClose(() => {
-                console.log('WebSocket connection closed');
-            });
-            
-            console.log('Connected to server');
+            console.log('Colyseus client created successfully');
             
         } catch (error) {
             console.error('Failed to connect to server:', error);
@@ -485,10 +472,12 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Create room with specific code
+            // Create a new room
+            console.log('Attempting to create room with code:', roomCode);
             this.room = await this.client.create('soccer', { 
                 roomCode: roomCode
             });
+            console.log('Room created successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             
             console.log('Created room with code:', roomCode);
@@ -500,7 +489,15 @@ class SoccerStarsGame extends Phaser.Scene {
             
         } catch (error) {
             console.error('Failed to create room:', error);
-            this.showLobbyError('Failed to create room. Please try again.');
+            
+            // Handle specific error cases
+            if (error.message && error.message.includes('Room is full')) {
+                this.showLobbyError('Room is full. Please try a different room code.');
+            } else if (error.message && error.message.includes('Room not found')) {
+                this.showLobbyError('Room not found. Please check the room code.');
+            } else {
+                this.showLobbyError('Failed to create room. Please try again.');
+            }
         }
     }
     
@@ -517,8 +514,10 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Join room with specific code
+            // Try to join existing room or create new one
+            console.log('Attempting to join room with code:', roomCode);
             this.room = await this.client.joinOrCreate('soccer', { roomCode: roomCode });
+            console.log('Room joined successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             
             console.log('Joined room with code:', roomCode);
@@ -527,7 +526,15 @@ class SoccerStarsGame extends Phaser.Scene {
             
         } catch (error) {
             console.error('Failed to join room:', error);
-            this.showLobbyError('Room not found or full. Please check the code.');
+            
+            // Handle specific error cases
+            if (error.message && error.message.includes('Room is full')) {
+                this.showLobbyError('Room is full. Please try a different room code.');
+            } else if (error.message && error.message.includes('Room not found')) {
+                this.showLobbyError('Room not found. Please check the room code.');
+            } else {
+                this.showLobbyError('Failed to join room. Please check the code.');
+            }
         }
     }
     
