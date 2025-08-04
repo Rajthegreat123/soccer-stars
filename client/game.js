@@ -571,13 +571,13 @@ const config = {
 
 // Global functions for UI buttons
 function restartGame() {
-    if (game.scene.scenes[0].room) {
+    if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0].room) {
         game.scene.scenes[0].room.send('restart');
     }
 }
 
 function exitGame() {
-    if (game.scene.scenes[0].room) {
+    if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0].room) {
         game.scene.scenes[0].room.leave();
     }
     location.reload();
@@ -638,21 +638,29 @@ async function generateRoomCode() {
 function createRoom() {
     const roomCode = document.getElementById('roomCodeDisplay').textContent;
     if (roomCode && roomCode !== 'XXXXX' && roomCode !== 'ERROR') {
-        game.scene.scenes[0].createRoomWithCode(roomCode);
+        if (game && game.scene && game.scene.scenes[0]) {
+            game.scene.scenes[0].createRoomWithCode(roomCode);
+        } else {
+            console.error('Game not initialized yet');
+        }
     }
 }
 
 function joinRoom() {
     const roomCode = document.getElementById('roomCodeInput').value.toUpperCase().trim();
     if (roomCode.length === 5) {
-        game.scene.scenes[0].joinRoomWithCode(roomCode);
+        if (game && game.scene && game.scene.scenes[0]) {
+            game.scene.scenes[0].joinRoomWithCode(roomCode);
+        } else {
+            console.error('Game not initialized yet');
+        }
     } else {
         alert('Please enter a valid 5-letter room code');
     }
 }
 
 function leaveLobby() {
-    if (game.scene.scenes[0].room) {
+    if (game && game.scene && game.scene.scenes[0] && game.scene.scenes[0].room) {
         game.scene.scenes[0].room.leave();
     }
     location.reload();
@@ -676,9 +684,12 @@ function verifyLibraries() {
     return true;
 }
 
+// Declare game variable in global scope
+let game;
+
 // Start the game only if libraries are loaded
 if (verifyLibraries()) {
-    const game = new Phaser.Game(config);
+    game = new Phaser.Game(config);
 } else {
     console.error('Game initialization failed due to missing libraries');
 }
