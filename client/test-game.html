@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Stars Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Soccer Stars Game Test</h1>
+        
+        <div>
+            <button class="test-button" onclick="testCreateRoom()">Test Create Room</button>
+            <button class="test-button" onclick="testJoinRoom()">Test Join Room</button>
+            <button class="test-button" onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div>
+            <label for="roomCodeInput">Room Code:</label>
+            <input type="text" id="roomCodeInput" placeholder="Enter room code" maxlength="5" style="text-transform: uppercase;">
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/colyseus.js@0.16.0/dist/colyseus.js"></script>
+    <script src="game.js"></script>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function testCreateRoom() {
+            try {
+                log('Testing room creation...');
+                
+                // Generate a room code
+                const response = await fetch('http://localhost:2567/create-room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                const roomCode = data.roomCode;
+                
+                log(`Generated room code: ${roomCode}`);
+                
+                // Test creating the room
+                if (game && game.scene && game.scene.scenes[0]) {
+                    await game.scene.scenes[0].createRoomWithCode(roomCode);
+                    log('Room creation test completed');
+                } else {
+                    log('ERROR: Game not initialized');
+                }
+                
+            } catch (error) {
+                log(`ERROR: ${error.message}`);
+                console.error('Test error:', error);
+            }
+        }
+        
+        async function testJoinRoom() {
+            try {
+                const roomCode = document.getElementById('roomCodeInput').value.toUpperCase().trim();
+                
+                if (!roomCode) {
+                    log('ERROR: Please enter a room code');
+                    return;
+                }
+                
+                log(`Testing join room with code: ${roomCode}`);
+                
+                if (game && game.scene && game.scene.scenes[0]) {
+                    await game.scene.scenes[0].joinRoomWithCode(roomCode);
+                    log('Room join test completed');
+                } else {
+                    log('ERROR: Game not initialized');
+                }
+                
+            } catch (error) {
+                log(`ERROR: ${error.message}`);
+                console.error('Test error:', error);
+            }
+        }
+        
+        // Override console.log to also log to our display
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log('LOG: ' + args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log('ERROR: ' + args.join(' '));
+        };
+        
+        log('Test page loaded. Game should initialize automatically.');
+    </script>
+</body>
+</html>

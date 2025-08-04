@@ -6,6 +6,8 @@ export class SoccerRoom extends Room<GameState> {
   roomCode: string = "";
   creatorId: string = "";
   
+
+  
   onCreate(options: any) {
     this.setState(new GameState());
     
@@ -14,6 +16,9 @@ export class SoccerRoom extends Room<GameState> {
     this.creatorId = options.creatorId || "";
     
     console.log(`Room created with code: ${this.roomCode}`);
+    
+    // Store room code for filtering
+    this.metadata.roomCode = this.roomCode;
     
     this.onMessage("move", (client, message) => {
       this.handleMove(client, message);
