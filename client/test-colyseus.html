@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colyseus Test</title>
+</head>
+<body>
+    <h1>Colyseus Library Test</h1>
+    <div id="status">Testing...</div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/colyseus.js@0.16.0/dist/colyseus.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // Check if Colyseus is loaded
+                if (typeof Colyseus === 'undefined') {
+                    statusDiv.innerHTML = '<p style="color: red;">❌ Colyseus library not loaded</p>';
+                    return;
+                }
+                
+                statusDiv.innerHTML = '<p style="color: green;">✅ Colyseus library loaded</p>';
+                
+                // Check version
+                console.log('Colyseus version:', Colyseus.version || 'unknown');
+                statusDiv.innerHTML += '<p>Version: ' + (Colyseus.version || 'unknown') + '</p>';
+                
+                // Check if Client is available
+                if (typeof Colyseus.Client === 'undefined') {
+                    statusDiv.innerHTML += '<p style="color: red;">❌ Colyseus.Client not available</p>';
+                    return;
+                }
+                
+                statusDiv.innerHTML += '<p style="color: green;">✅ Colyseus.Client available</p>';
+                
+                // Try to create a client
+                try {
+                    const client = new Colyseus.Client('ws://localhost:2567');
+                    statusDiv.innerHTML += '<p style="color: green;">✅ Client created successfully</p>';
+                    
+                    // Test connection
+                    client.onOpen(() => {
+                        statusDiv.innerHTML += '<p style="color: green;">✅ Connection opened</p>';
+                    });
+                    
+                    client.onError((error) => {
+                        statusDiv.innerHTML += '<p style="color: red;">❌ Connection error: ' + error + '</p>';
+                    });
+                    
+                } catch (error) {
+                    statusDiv.innerHTML += '<p style="color: red;">❌ Failed to create client: ' + error.message + '</p>';
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>

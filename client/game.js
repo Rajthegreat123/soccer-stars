@@ -120,6 +120,14 @@ class SoccerStarsGame extends Phaser.Scene {
     
     async connectToServer() {
         try {
+            // Check if Colyseus is available
+            if (typeof Colyseus === 'undefined') {
+                throw new Error('Colyseus library not loaded. Please refresh the page.');
+            }
+            
+            console.log('Colyseus version:', Colyseus.version || 'unknown');
+            console.log('Colyseus.Client available:', typeof Colyseus.Client);
+            
             // Use production server URL or fallback to localhost for development
             const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
                 ? 'ws://localhost:2567'
@@ -128,10 +136,28 @@ class SoccerStarsGame extends Phaser.Scene {
             console.log('Connecting to:', serverUrl);
             this.client = new Colyseus.Client(serverUrl);
             
+            // Add connection event listeners
+            this.client.onOpen(() => {
+                console.log('WebSocket connection opened');
+            });
+            
+            this.client.onError((error) => {
+                console.error('WebSocket connection error:', error);
+            });
+            
+            this.client.onClose(() => {
+                console.log('WebSocket connection closed');
+            });
+            
             console.log('Connected to server');
             
         } catch (error) {
             console.error('Failed to connect to server:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             this.showConnectionError();
         }
     }
@@ -454,10 +480,14 @@ class SoccerStarsGame extends Phaser.Scene {
             // Connect to server first
             await this.connectToServer();
             
+            // Check if client was successfully created
+            if (!this.client) {
+                throw new Error('Failed to establish connection to server');
+            }
+            
             // Create room with specific code
             this.room = await this.client.create('soccer', { 
-                roomCode: roomCode,
-                creatorId: this.client.id 
+                roomCode: roomCode
             });
             this.playerId = this.room.sessionId;
             
@@ -481,6 +511,11 @@ class SoccerStarsGame extends Phaser.Scene {
             
             // Connect to server first
             await this.connectToServer();
+            
+            // Check if client was successfully created
+            if (!this.client) {
+                throw new Error('Failed to establish connection to server');
+            }
             
             // Join room with specific code
             this.room = await this.client.joinOrCreate('soccer', { roomCode: roomCode });
@@ -623,5 +658,27 @@ function leaveLobby() {
     location.reload();
 }
 
-// Start the game
-const game = new Phaser.Game(config);
+// Verify required libraries are loaded
+function verifyLibraries() {
+    if (typeof Phaser === 'undefined') {
+        console.error('Phaser library not loaded');
+        alert('Failed to load Phaser library. Please refresh the page.');
+        return false;
+    }
+    
+    if (typeof Colyseus === 'undefined') {
+        console.error('Colyseus library not loaded');
+        alert('Failed to load Colyseus library. Please refresh the page.');
+        return false;
+    }
+    
+    console.log('All required libraries loaded successfully');
+    return true;
+}
+
+// Start the game only if libraries are loaded
+if (verifyLibraries()) {
+    const game = new Phaser.Game(config);
+} else {
+    console.error('Game initialization failed due to missing libraries');
+}

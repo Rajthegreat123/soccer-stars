@@ -21,8 +21,7 @@ const gameServer = new Server({
 });
 
 // Register room handlers
-gameServer.define('soccer', SoccerRoom)
-  .filterBy(['roomCode']); // Allow filtering by room code
+gameServer.define('soccer', SoccerRoom);
 
 // Room creation endpoint
 app.post('/create-room', (req, res) => {

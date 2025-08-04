@@ -21,8 +21,7 @@ const gameServer = new colyseus_1.Server({
     server,
 });
 // Register room handlers
-gameServer.define('soccer', SoccerRoom_1.SoccerRoom)
-    .filterBy(['roomCode']); // Allow filtering by room code
+gameServer.define('soccer', SoccerRoom_1.SoccerRoom);
 // Room creation endpoint
 app.post('/create-room', (req, res) => {
     const roomCode = generateRoomCode();
