@@ -17,8 +17,8 @@ export class SoccerRoom extends Room<GameState> {
     
     console.log(`Room created with code: ${this.roomCode}`);
     
-    // Store room code for filtering
-    this.metadata.roomCode = this.roomCode;
+    // Initialize metadata and store room code for filtering
+    this.metadata = { roomCode: this.roomCode };
     
     this.onMessage("move", (client, message) => {
       this.handleMove(client, message);
