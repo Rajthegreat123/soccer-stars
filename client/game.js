@@ -189,6 +189,8 @@ class SoccerStarsGame extends Phaser.Scene {
         this.room.onLeave((code) => {
             console.log('Left room with code:', code);
         });
+        
+
     }
     
     updateGameState(state) {
@@ -472,11 +474,9 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Create a new room
+            // Create a new room with the room code
             console.log('Attempting to create room with code:', roomCode);
-            this.room = await this.client.create('soccer', { 
-                roomCode: roomCode
-            });
+            this.room = await this.client.create('soccer', { roomCode: roomCode });
             console.log('Room created successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             
@@ -514,9 +514,18 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Try to join existing room or create new one
+            // Try to join existing room
             console.log('Attempting to join room with code:', roomCode);
-            this.room = await this.client.joinOrCreate('soccer', { roomCode: roomCode });
+            
+            // Get all available rooms and find the one with matching room code
+            const rooms = await this.client.getAvailableRooms('soccer');
+            const targetRoom = rooms.find(room => room.metadata?.roomCode === roomCode);
+            
+            if (!targetRoom) {
+                throw new Error('Room not found');
+            }
+            
+            this.room = await this.client.joinById('soccer', targetRoom.roomId);
             console.log('Room joined successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             

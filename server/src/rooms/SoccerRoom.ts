@@ -34,6 +34,8 @@ export class SoccerRoom extends Room<GameState> {
       }
     });
     
+
+    
     // Setup update loop for physics
     this.setSimulationInterval((deltaTime) => this.update(deltaTime), 1000 / 60);
     
