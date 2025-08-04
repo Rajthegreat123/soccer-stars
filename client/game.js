@@ -479,9 +479,10 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Create a new room without specifying room code first
+            // Create a new room with a unique identifier to ensure we get a fresh room
             console.log('Attempting to create room...');
-            this.room = await this.client.create('soccer');
+            const uniqueId = Date.now().toString();
+            this.room = await this.client.joinOrCreate('soccer', { uniqueId: uniqueId });
             console.log('Room created successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             

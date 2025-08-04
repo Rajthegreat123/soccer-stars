@@ -15,6 +15,11 @@ export class SoccerRoom extends Room<GameState> {
     this.roomCode = options.roomCode || this.generateRoomCode();
     this.creatorId = options.creatorId || "";
     
+    // If uniqueId is provided, this is a new room creation
+    if (options.uniqueId) {
+      console.log(`New room created with uniqueId: ${options.uniqueId}`);
+    }
+    
     console.log(`Room created with code: ${this.roomCode}`);
     
     this.onMessage("move", (client, message) => {
