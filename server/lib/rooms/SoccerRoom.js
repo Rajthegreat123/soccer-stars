@@ -16,8 +16,8 @@ class SoccerRoom extends colyseus_1.Room {
         this.roomCode = options.roomCode || this.generateRoomCode();
         this.creatorId = options.creatorId || "";
         console.log(`Room created with code: ${this.roomCode}`);
-        // Initialize metadata and store room code for filtering
-        this.metadata = { roomCode: this.roomCode };
+        // Update metadata with room code
+        this.setMetadata({ roomCode: this.roomCode });
         this.onMessage("move", (client, message) => {
             this.handleMove(client, message);
         });

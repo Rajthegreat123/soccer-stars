@@ -20,8 +20,12 @@ const gameServer = new Server({
   server,
 });
 
-// Register room handlers
-gameServer.define('soccer', SoccerRoom);
+// Register room handlers with metadata support
+gameServer.define('soccer', SoccerRoom, {
+  metadata: {
+    roomCode: ''
+  }
+});
 
 // Room creation endpoint
 app.post('/create-room', (req, res) => {
