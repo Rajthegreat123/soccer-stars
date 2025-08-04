@@ -189,6 +189,11 @@ class SoccerStarsGame extends Phaser.Scene {
         this.room.onLeave((code) => {
             console.log('Left room with code:', code);
         });
+        
+        // Listen for room code confirmation
+        this.room.onMessage('roomCodeSet', (message) => {
+            console.log('Room code confirmed:', message.roomCode);
+        });
     }
     
     updateGameState(state) {
@@ -472,13 +477,15 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Create a new room
-            console.log('Attempting to create room with code:', roomCode);
-            this.room = await this.client.create('soccer', { 
-                roomCode: roomCode
-            });
+            // Create a new room without specifying room code first
+            console.log('Attempting to create room...');
+            this.room = await this.client.create('soccer');
             console.log('Room created successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
+            
+            // Send room code to server after room is created
+            console.log('Sending room code to server:', roomCode);
+            this.room.send('setRoomCode', { roomCode: roomCode });
             
             console.log('Created room with code:', roomCode);
             this.setupRoomListeners();
@@ -514,9 +521,18 @@ class SoccerStarsGame extends Phaser.Scene {
                 throw new Error('Failed to establish connection to server');
             }
             
-            // Try to join existing room or create new one
+            // Try to join existing room
             console.log('Attempting to join room with code:', roomCode);
-            this.room = await this.client.joinOrCreate('soccer', { roomCode: roomCode });
+            
+            // Get all available rooms and find the one with matching room code
+            const rooms = await this.client.getAvailableRooms('soccer');
+            const targetRoom = rooms.find(room => room.metadata?.roomCode === roomCode);
+            
+            if (!targetRoom) {
+                throw new Error('Room not found');
+            }
+            
+            this.room = await this.client.joinById('soccer', targetRoom.roomId);
             console.log('Room joined successfully:', this.room.roomId);
             this.playerId = this.room.sessionId;
             
