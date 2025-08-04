@@ -29,15 +29,6 @@ class SoccerRoom extends colyseus_1.Room {
                 this.resetGame();
             }
         });
-        this.onMessage("setRoomCode", (client, message) => {
-            if (this.roomCode === "") { // Only allow setting room code if not already set
-                this.roomCode = message.roomCode;
-                this.metadata.roomCode = this.roomCode;
-                console.log(`Room code set to: ${this.roomCode}`);
-                // Send confirmation to client
-                client.send('roomCodeSet', { roomCode: this.roomCode });
-            }
-        });
         // Setup update loop for physics
         this.setSimulationInterval((deltaTime) => this.update(deltaTime), 1000 / 60);
         console.log("SoccerRoom created!", this.roomId);
